@@ -1,0 +1,465 @@
+{
+  "university": "Düzce Üniversitesi",
+  "faculty": "Mühendislik Fakültesi",
+  "department": "Bilgisayar Mühendisliği",
+  "degree": "Lisans",
+  "totalSemesters": 8,
+  "curriculum": [
+    {
+      "semesterId": 1,
+      "semesterName": "1. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "AIB101",
+          "courseName": "Atatürk İlkeleri ve İnkılap Tarihi I",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM103",
+          "courseName": "Bilgisayar Mühendisliğine Giriş",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM107",
+          "courseName": "Elektrik Devre Temelleri",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM111",
+          "courseName": "Algoritmalar ve Programlama I",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM115",
+          "courseName": "Bilişim Teknolojileri",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "FIZ111",
+          "courseName": "Fizik I",
+          "akts": 6,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "ING101",
+          "courseName": "İngilizce I",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "MAT111",
+          "courseName": "Matematik I",
+          "akts": 6,
+          "credit": 6,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "TDB121",
+          "courseName": "Türk Dili I",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 2,
+      "semesterName": "2. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "AIB102",
+          "courseName": "Atatürk İlkeleri ve İnkılap Tarihi II",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM106",
+          "courseName": "Olasılık ve İstatistik",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM112",
+          "courseName": "Algoritmalar ve Programlama II",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM114",
+          "courseName": "Web Teknolojileri",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "FIZ112",
+          "courseName": "Fizik II",
+          "akts": 6,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "ING102",
+          "courseName": "İngilizce II",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "KRP102",
+          "courseName": "Kariyer Planlama",
+          "akts": 2,
+          "credit": 1,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "MAT112",
+          "courseName": "Matematik II",
+          "akts": 6,
+          "credit": 6,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "TDB122",
+          "courseName": "Türk Dili II",
+          "akts": 2,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 3,
+      "semesterName": "3. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "BM203",
+          "courseName": "Elektronik",
+          "akts": 5,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM213",
+          "courseName": "Lineer Cebir",
+          "akts": 3,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM217",
+          "courseName": "Ayrık İşlemsel Yapılar",
+          "akts": 3,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM221",
+          "courseName": "Diferansiyel Denklemler",
+          "akts": 4,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM223",
+          "courseName": "Mesleki İngilizce I",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM225",
+          "courseName": "Nesneye Dayalı Programlama",
+          "akts": 5,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM229",
+          "courseName": "Sayısal Analiz",
+          "akts": 3,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SECSOS3YY",
+          "courseName": "BM 3. YY Üniversite Seçmelisi",
+          "akts": 3,
+          "credit": 2,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 4,
+      "semesterName": "4. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "BM204",
+          "courseName": "Bilgisayar Organizasyonu",
+          "akts": 5,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM206",
+          "courseName": "Sayısal Elektronik",
+          "akts": 5,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM208",
+          "courseName": "Nesneye Dayalı Analiz ve Tasarım",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM210",
+          "courseName": "Programlama Dillerinin Prensipleri",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM214",
+          "courseName": "Veri Yapıları",
+          "akts": 5,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM216",
+          "courseName": "Mesleki İngilizce II",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SECSOS4YY",
+          "courseName": "BM 4. YY Üniversite Seçmelisi",
+          "akts": 3,
+          "credit": 2,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 5,
+      "semesterName": "5. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "BM301",
+          "courseName": "Biçimsel Diller ve Soyut Makinalar",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM303",
+          "courseName": "İşaretler ve Sistemler",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM305",
+          "courseName": "İşletim Sistemleri",
+          "akts": 5,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM307",
+          "courseName": "Bilgisayar Ağları I",
+          "akts": 5,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM309",
+          "courseName": "Veritabanı Yönetim Sistemleri",
+          "akts": 6,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM397",
+          "courseName": "Yaz Dönemi Stajı I",
+          "akts": 3,
+          "credit": 1,
+          "type": "Staj",
+          "includeInGpa": false
+        },
+        {
+          "courseCode": "SECTEK5YY",
+          "courseName": "BM 5. YY Fakülte Seçmelisi",
+          "akts": 3,
+          "credit": 2,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 6,
+      "semesterName": "6. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "BM302",
+          "courseName": "Bilgisayar Ağları II",
+          "akts": 6,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM304",
+          "courseName": "Mikroişlemciler",
+          "akts": 6,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM306",
+          "courseName": "Sistem Programlama",
+          "akts": 5,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM308",
+          "courseName": "Web Programlama",
+          "akts": 6,
+          "credit": 4,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM310",
+          "courseName": "Yazılım Mühendisliği",
+          "akts": 4,
+          "credit": 3,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SECTEK6YY",
+          "courseName": "BM 6. YY Fakülte Seçmelisi",
+          "akts": 3,
+          "credit": 2,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 7,
+      "semesterName": "7. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "BM401",
+          "courseName": "Bilgisayar Mühendisliği Proje Tasarımı",
+          "akts": 3,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "BM497",
+          "courseName": "Yaz Dönemi Stajı II",
+          "akts": 2,
+          "credit": 1,
+          "type": "Staj",
+          "includeInGpa": false
+        },
+        {
+          "courseCode": "SECMES7YY",
+          "courseName": "BM 7. YY Bölüm Seçmelisi",
+          "akts": 25,
+          "credit": 15,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        }
+      ]
+    },
+    {
+      "semesterId": 8,
+      "semesterName": "8. Yarıyıl",
+      "courses": [
+        {
+          "courseCode": "BM498",
+          "courseName": "Mezuniyet Tezi",
+          "akts": 5,
+          "credit": 2,
+          "type": "Zorunlu",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SECMES8YY",
+          "courseName": "BM 8. YY Bölüm Seçmelisi",
+          "akts": 25,
+          "credit": 15,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        }
+      ]
+    }
+  ]
+}
