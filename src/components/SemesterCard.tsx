@@ -16,6 +16,7 @@ interface SemesterCardProps {
   onGradeChange: (semesterId: number, courseCode: string, grade: LetterGrade) => void;
   onAddCourse: (semesterId: number, newCourse: Omit<Course, 'isCustom'>) => void;
   onDeleteCourse: (semesterId: number, courseCode: string) => void;
+  onCourseDetailsChange: (semesterId: number, courseCode: string, fields: Partial<Course>) => void;
 }
 
 export default function SemesterCard({
@@ -23,7 +24,8 @@ export default function SemesterCard({
   calculateSemesterStats,
   onGradeChange,
   onAddCourse,
-  onDeleteCourse
+  onDeleteCourse,
+  onCourseDetailsChange
 }: SemesterCardProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -124,13 +126,14 @@ export default function SemesterCard({
               </tr>
             </thead>
             <tbody>
-              {semester.courses.map(course => (
+              {semester.courses.map((course, index) => (
                 <CourseRow
-                  key={course.courseCode}
+                  key={`${semester.semesterId}-${index}`}
                   course={course}
                   semesterId={semester.semesterId}
                   onGradeChange={onGradeChange}
                   onDelete={onDeleteCourse}
+                  onCourseDetailsChange={onCourseDetailsChange}
                 />
               ))}
               {semester.courses.length === 0 && (

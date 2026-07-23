@@ -17,6 +17,7 @@ export default function Home() {
     updateCourseGrade,
     addCustomCourse,
     deleteCustomCourse,
+    updateCourseDetails,
     resetTranscript,
     importTranscriptData,
     parseTranscriptText,
@@ -208,6 +209,7 @@ export default function Home() {
                 onGradeChange={updateCourseGrade}
                 onAddCourse={addCustomCourse}
                 onDeleteCourse={deleteCustomCourse}
+                onCourseDetailsChange={updateCourseDetails}
               />
             ))}
           </div>

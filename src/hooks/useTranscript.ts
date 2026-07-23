@@ -143,6 +143,20 @@ export function useTranscript() {
     }));
   }, []);
 
+  // Update a course's name or code (used for editing placeholder electives)
+  const updateCourseDetails = useCallback((semesterId: number, courseCode: string, fields: Partial<Course>) => {
+    setSemesters(prev => prev.map(sem => {
+      if (sem.semesterId !== semesterId) return sem;
+      return {
+        ...sem,
+        courses: sem.courses.map(c => {
+          if (c.courseCode !== courseCode) return c;
+          return { ...c, ...fields };
+        })
+      };
+    }));
+  }, []);
+
   // Reset transcript to default curriculum for the active year
   const resetTranscript = useCallback(() => {
     if (!CURRICULA[bolognaYear]) return;
@@ -582,6 +596,7 @@ export function useTranscript() {
     toggleCourseInclusion,
     addCustomCourse,
     deleteCustomCourse,
+    updateCourseDetails,
     resetTranscript,
     selectAllCourses,
     deselectAllCourses,
