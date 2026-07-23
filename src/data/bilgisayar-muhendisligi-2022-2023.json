@@ -423,10 +423,42 @@
           "includeInGpa": true
         },
         {
-          "courseCode": "SECMES7YY",
+          "courseCode": "SEC401",
           "courseName": "BM 7. YY Bölüm Seçmelisi",
-          "akts": 25,
-          "credit": 15,
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC402",
+          "courseName": "BM 7. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC403",
+          "courseName": "BM 7. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC404",
+          "courseName": "BM 7. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC405",
+          "courseName": "BM 7. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
           "type": "Seçmeli",
           "includeInGpa": true
         }
@@ -445,10 +477,42 @@
           "includeInGpa": true
         },
         {
-          "courseCode": "SECMES8YY",
+          "courseCode": "SEC406",
           "courseName": "BM 8. YY Bölüm Seçmelisi",
-          "akts": 25,
-          "credit": 15,
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC407",
+          "courseName": "BM 8. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC408",
+          "courseName": "BM 8. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC409",
+          "courseName": "BM 8. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
+          "type": "Seçmeli",
+          "includeInGpa": true
+        },
+        {
+          "courseCode": "SEC410",
+          "courseName": "BM 8. YY Bölüm Seçmelisi",
+          "akts": 5,
+          "credit": 3,
           "type": "Seçmeli",
           "includeInGpa": true
         }
