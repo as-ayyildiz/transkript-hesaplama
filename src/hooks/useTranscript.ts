@@ -16,6 +16,80 @@ const CURRICULA: Record<string, Curriculum> = {
 
 const STORAGE_PREFIX = 'transkript_hesaplama_';
 
+const migrateSemesters = (parsed: Semester[], defaultValue: Semester[]) => {
+  return parsed.map(sem => {
+    if (sem.semesterId === 7 && sem.courses.some(c => c.courseCode === "SECMES7YY")) {
+      const nonElectives = sem.courses.filter(c => c.courseCode !== "SECMES7YY");
+      const defaultElectives = defaultValue.find(s => s.semesterId === 7)?.courses.filter(c => c.courseCode.startsWith("SEC")) || [];
+      return {
+        ...sem,
+        courses: [...nonElectives, ...defaultElectives]
+      };
+    }
+    if (sem.semesterId === 8 && sem.courses.some(c => c.courseCode === "SECMES8YY")) {
+      const nonElectives = sem.courses.filter(c => c.courseCode !== "SECMES8YY");
+      const defaultElectives = defaultValue.find(s => s.semesterId === 8)?.courses.filter(c => c.courseCode.startsWith("SEC")) || [];
+      return {
+        ...sem,
+        courses: [...nonElectives, ...defaultElectives]
+      };
+    }
+    return sem;
+  });
+};
+
+const decodeShiftedText = (text: string): string => {
+  // Typical shifted indicators (e.g. backslashes, percent signs, pluses, non-injective character mappings)
+  const isShifted = /[\\]|[%]|[*]|[+]|[&]|[÷]|[ú]|[Õ]|[⊗]/.test(text) || text.includes("LVWHP") || text.includes("LUL");
+  if (!isShifted) return text;
+
+  let decoded = "";
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const code = text.charCodeAt(i);
+
+    if (char === ' ') {
+      // Space maps to 'ö' in this font encoding
+      decoded += 'ö';
+    } else if (char === 'ø') {
+      // Ligature for 'il' / 'İl'
+      decoded += 'il';
+    } else if (char === 'ú') {
+      decoded += 'ş';
+    } else if (char === 'Õ') {
+      decoded += 'ı';
+    } else if (char === '÷') {
+      decoded += 'ğ';
+    } else if (char === '⊗') {
+      decoded += 'ülü';
+    } else if (char === 'I') {
+      // Ligature for 'fi'
+      decoded += 'fi';
+    } else if (code >= 33 && code <= 126) {
+      // Normal ASCII shift +29
+      const newCode = code + 29;
+      decoded += String.fromCharCode(newCode);
+    } else {
+      decoded += char;
+    }
+  }
+
+  // Formatting post-processing to clean up spacings and capitalizations
+  return decoded
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map(word => {
+      if (word.length === 0) return '';
+      const first = word.charAt(0);
+      const rest = word.slice(1);
+      if (first === 'ı') return 'I' + rest;
+      if (first === 'i') return 'İ' + rest;
+      return first.toUpperCase() + rest;
+    })
+    .join(' ');
+};
+
 export function useTranscript() {
   const [bolognaYear, setBolognaYear] = useState<string>("2025-2026");
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -34,7 +108,15 @@ export function useTranscript() {
 
     if (savedSemesters) {
       try {
-        setSemesters(JSON.parse(savedSemesters));
+        let parsed = JSON.parse(savedSemesters) as Semester[];
+        const needsMigration = parsed.some(sem => sem.courses.some(c => c.courseCode === "SECMES7YY" || c.courseCode === "SECMES8YY"));
+        if (needsMigration) {
+          const defaultValue = JSON.parse(JSON.stringify(CURRICULA[savedYear].curriculum)) as Semester[];
+          parsed = migrateSemesters(parsed, defaultValue);
+          localStorage.setItem(`${STORAGE_PREFIX}semesters_${savedYear}`, JSON.stringify(parsed));
+          localStorage.removeItem(`${STORAGE_PREFIX}lastObsImport_${savedYear}`);
+        }
+        setSemesters(parsed);
       } catch (e) {
         console.error("Error parsing saved semesters", e);
         setSemesters(JSON.parse(JSON.stringify(CURRICULA[savedYear].curriculum)));
@@ -69,7 +151,15 @@ export function useTranscript() {
     const savedSemesters = localStorage.getItem(`${STORAGE_PREFIX}semesters_${newYear}`);
     if (savedSemesters) {
       try {
-        setSemesters(JSON.parse(savedSemesters));
+        let parsed = JSON.parse(savedSemesters) as Semester[];
+        const needsMigration = parsed.some(sem => sem.courses.some(c => c.courseCode === "SECMES7YY" || c.courseCode === "SECMES8YY"));
+        if (needsMigration) {
+          const defaultValue = JSON.parse(JSON.stringify(CURRICULA[newYear].curriculum)) as Semester[];
+          parsed = migrateSemesters(parsed, defaultValue);
+          localStorage.setItem(`${STORAGE_PREFIX}semesters_${newYear}`, JSON.stringify(parsed));
+          localStorage.removeItem(`${STORAGE_PREFIX}lastObsImport_${newYear}`);
+        }
+        setSemesters(parsed);
       } catch (e) {
         setSemesters(JSON.parse(JSON.stringify(CURRICULA[newYear].curriculum)));
       }
@@ -249,7 +339,28 @@ export function useTranscript() {
       "US223": "Değerlerimiz",
       "US225": "Girişimcilik I",
       "US227": "Eleştirel Düşünme",
-      "US229": "Proje Yönetimi"
+      "US229": "Proje Yönetimi",
+      "BM455": "Bulanık Mantığa Giriş",
+      "BM469": "Makine Öğrenmesine Giriş",
+      "BM471": "Gömülü Sistem Uygulamaları",
+      "BM478": "Python ile Veri Bilimine Giriş",
+      "BM499": "Yaz Dönemi Stajı II",
+      "BM497": "Yaz Dönemi Stajı II",
+      "BM461": "Coğrafi Bilgi Sistemleri",
+      "BM495": "İleri Gömülü Sistem Uygulamaları",
+      "BM451": "Yapay Zekaya Giriş",
+      "BM453": "Görüntü İşleme",
+      "BM457": "Veri Madenciliği",
+      "BM459": "Bilgisayar Ağları",
+      "BM463": "Dağıtık Sistemler",
+      "BM465": "Kriptografi ve Ağ Güvenliği",
+      "BM467": "Paralel Hesaplama",
+      "BM473": "Doğal Dil İşlemeye Giriş",
+      "BM475": "Robotik Sistemler",
+      "BM477": "Yazılım Testi ve Kalitesi",
+      "BM479": "Web Tabanlı Sistemler",
+      "BM481": "Mobil Programlama",
+      "BM483": "Derleyici Tasarımı"
     };
 
     const normalizeString = (str: string) => {
@@ -431,7 +542,7 @@ export function useTranscript() {
           }
         }
 
-        const cleanName = ELECTIVE_NAMES[code] || courseName;
+        const cleanName = ELECTIVE_NAMES[code] || decodeShiftedText(courseName);
 
         const sem = updatedSemesters.find(s => s.semesterId === assignedSemesterId);
         if (sem) {
