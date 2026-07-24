@@ -382,7 +382,15 @@ export function useTranscript() {
     let currentSemesterId = 1;
 
     lines.forEach(line => {
-      // 1. Detect semester headers (e.g. 1. Yarıyıl, 2. Dönem, 3.YY vb.)
+      // 1. Detect semester headers (e.g. 1. Yarıyıl, 1. Sınıf / Güz, 2022-2023 Güz Dönemi vb.)
+      const classMatch = line.match(/(\d+)\s*\.\s*Sınıf\s*(?:\/)?\s*(Güz|Bahar|Guz)/i);
+      if (classMatch) {
+        const classNum = parseInt(classMatch[1], 10);
+        const isBahar = /Bahar/i.test(classMatch[2]);
+        currentSemesterId = (classNum - 1) * 2 + (isBahar ? 2 : 1);
+        return;
+      }
+
       const semMatch = line.match(/(\d+)\s*\.\s*(?:Yarıyıl|Yariyil|Dönem|Donem|Yy|Y\.Y)/i);
       if (semMatch) {
         currentSemesterId = parseInt(semMatch[1], 10);
@@ -441,8 +449,6 @@ export function useTranscript() {
       let finalGrade = matchedGrade;
       if (matchedGrade === "GR") {
         finalGrade = "FF";
-      } else if (matchedGrade === "YT" || matchedGrade === "YZ") {
-        finalGrade = "";
       }
 
       // Extract credit and AKTS values
@@ -498,7 +504,16 @@ export function useTranscript() {
       let isCompulsoryMatched = false;
       for (let sIndex = 0; sIndex < updatedSemesters.length; sIndex++) {
         const sem = updatedSemesters[sIndex];
-        const compCourse = sem.courses.find(c => normalizeString(c.courseCode) === codeNorm);
+        const compCourse = sem.courses.find(c => {
+          const cCode = normalizeString(c.courseCode);
+          if ((cCode === "BM497" || cCode === "BM499") && (codeNorm === "BM497" || codeNorm === "BM499")) {
+            return true;
+          }
+          if ((cCode === "BM397" || cCode === "BM399") && (codeNorm === "BM397" || codeNorm === "BM399")) {
+            return true;
+          }
+          return cCode === codeNorm;
+        });
         if (compCourse) {
           compCourse.grade = finalGrade as LetterGrade;
           foundCourses.push({
