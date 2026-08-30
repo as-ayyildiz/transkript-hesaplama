@@ -14,7 +14,12 @@ const CURRICULA: Record<string, Curriculum> = {
   "2025-2026": curriculum2025 as Curriculum,
 };
 
+const DEFAULT_YEAR = "2025-2026";
 const STORAGE_PREFIX = 'transkript_hesaplama_';
+
+// Guards against a stale/corrupted bolognaYear in localStorage (e.g. left over from a version
+// of the app that supported a curriculum year no longer offered) crashing the whole app on load.
+const resolveYear = (year: string | null): string => (year && CURRICULA[year]) ? year : DEFAULT_YEAR;
 
 const migrateSemesters = (parsed: Semester[], defaultValue: Semester[]) => {
   return parsed.map(sem => {
@@ -91,7 +96,7 @@ const decodeShiftedText = (text: string): string => {
 };
 
 export function useTranscript() {
-  const [bolognaYear, setBolognaYear] = useState<string>("2025-2026");
+  const [bolognaYear, setBolognaYear] = useState<string>(DEFAULT_YEAR);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [lastObsImport, setLastObsImport] = useState<Semester[] | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -100,7 +105,7 @@ export function useTranscript() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const savedYear = localStorage.getItem(`${STORAGE_PREFIX}bolognaYear`) || "2025-2026";
+    const savedYear = resolveYear(localStorage.getItem(`${STORAGE_PREFIX}bolognaYear`));
     setBolognaYear(savedYear);
 
     const savedSemesters = localStorage.getItem(`${STORAGE_PREFIX}semesters_${savedYear}`);
@@ -325,42 +330,111 @@ export function useTranscript() {
 
     const gradeList = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "DZ", "GR", "YT", "YZ"];
 
+    // Fallback names sourced directly from Düzce Üniversitesi EBS (ebs.duzce.edu.tr) course
+    // pools (SECSOS3/4YY, SECTEK5/6YY, SECMES7/8YY). Only used when the pasted OBS text itself
+    // doesn't contain a usable course name — the parsed name always takes priority.
     const ELECTIVE_NAMES: Record<string, string> = {
+      // BM 3./4. YY Üniversite Seçmelisi (SECSOS3YY / SECSOS4YY)
       "US201": "Bilim Tarihi ve Felsefesi",
-      "US203": "Afet Yönetimi ve Afet Bilinci",
-      "US207": "Tüketici Davranışları",
-      "US209": "İşaret Dili",
-      "US211": "Gönüllülük Çalışmaları",
-      "US213": "Sürdürülebilir Kalkınma",
-      "US215": "Medya Okuryazarlığı",
-      "US217": "Temel İlk Yardım",
-      "US219": "Sağlıklı Yaşam ve Egzersiz",
-      "US221": "İş Sağlığı ve Güvenliği I",
-      "US223": "Değerlerimiz",
+      "US203": "Çevre ve Enerji",
+      "US205": "Davranış Bilimine Giriş",
+      "US207": "Girişimcilik",
+      "US209": "İletişim Tekniği",
+      "US211": "İş Psikolojisi",
+      "US213": "İşletme Yönetimi",
+      "US215": "Kültür Tarihi",
+      "US217": "Sanat Tarihi",
+      "US219": "Sivil Toplum Organizasyonları",
+      "US221": "Uygarlık Tarihi",
       "US225": "Girişimcilik I",
-      "US227": "Eleştirel Düşünme",
-      "US229": "Proje Yönetimi",
+      "US227": "Girişimcilik II",
+      "TAR233": "Çalgı Eğitimi I",
+      "UNI101": "Üniversite Seçmeli",
+      // BM 5./6. YY Fakülte Seçmelisi (SECTEK5YY / SECTEK6YY)
+      "MS301": "Endüstri İlişkileri",
+      "MS303": "Meslek Hastalıkları",
+      "MS305": "Teknoloji Felsefesi",
+      "MS307": "Mühendisler İçin Yönetim",
+      "MS309": "Mühendislik Etiği",
+      "MS311": "Kalite Yönetim Sistemleri ve Uygulaması",
+      "MS313": "Toplam Kalite Yönetimi",
+      "MS315": "İş Güvenliği",
+      "MS317": "İş Hukuku",
+      "MS319": "Mühendislik Ekonomisi",
+      "MS321": "Bilişim Teknolojilerinde Yeni Gelişmeler",
+      "MS323": "Betik Dilleri",
+      "MS325": "Mühendisler için Çevre Bilimi",
+      "MS327": "Sıfır Atık Yönetimi",
+      "MS332": "Bilimsel Araştırma ve Rapor Yazma",
+      "MS334": "Mühendislikte İnovasyon Yönetimi",
+      "MS335": "Mühendislikte Girişimcilik ve Ticarileştirme",
+      // BM 7./8. YY Bölüm Seçmelisi (SECMES7YY / SECMES8YY)
+      "BM420": "Bilgisayar Mimarileri",
+      "BM421": "Bilgisayar Grafiği",
+      "BM422": "Biyobilişime Giriş",
+      "BM423": "Bulanık Mantık ve Yapay Sinir Ağlarına Giriş",
+      "BM424": "Derleyici Tasarımı",
+      "BM425": "Erp Sistemleri",
+      "BM426": "Gerçek Zamanlı Ağ Sistemleri",
+      "BM427": "İnternet Mühendisliği",
+      "BM428": "Oyun Programlamaya Giriş",
+      "BM429": "Optimizasyon",
+      "BM430": "Proje Yönetimi",
+      "BM431": "Örüntü Tanıma",
+      "BM432": "Robotik",
+      "BM433": "Sayısal İşaret İşleme",
+      "BM434": "Sayısal Kontrol Sistemleri",
+      "BM435": "Veri Madenciliği",
+      "BM436": "Sistem Simülasyonu",
+      "BM437": "Yapay Zeka",
+      "BM438": "Yurtdışı Staj Etkinliği",
+      "BM439": "Bilgisayar Görmesi",
+      "BM440": "Veri Tabanı Tasarımı ve Uygulamaları",
+      "BM441": "Bilgisayar Güvenliğine Giriş",
+      "BM442": "Görsel Programlama",
+      "BM443": "Mobil Programlama",
+      "BM444": "Yazılım Tasarım Kalıpları",
+      "BM445": "Java Programlama",
+      "BM447": "Sayısal Görüntü İşleme",
+      "BM449": "Ağ Güvenliğine Giriş",
+      "BM451": "Kontrol Sistemlerine Giriş",
+      "BM453": "İçerik Yönetim Sistemleri",
       "BM455": "Bulanık Mantığa Giriş",
-      "BM469": "Makine Öğrenmesine Giriş",
-      "BM471": "Gömülü Sistem Uygulamaları",
-      "BM478": "Python ile Veri Bilimine Giriş",
-      "BM499": "Yaz Dönemi Stajı II",
-      "BM497": "Yaz Dönemi Stajı II",
+      "BM457": "Bilgisayar Aritmetiği ve Otomata",
+      "BM459": "Yazılım Test Mühendisliği",
       "BM461": "Coğrafi Bilgi Sistemleri",
+      "BM463": "İleri Sistem Programlama",
+      "BM465": "Mikrodenetleyiciler ve Uygulamaları",
+      "BM467": "Kodlama Teorisi ve Kriptografi",
+      "BM469": "Makine Öğrenmesine Giriş",
+      "BM470": "İleri Java Programlama",
+      "BM471": "Gömülü Sistem Uygulamaları",
+      "BM472": "Ağ Programlama",
+      "BM473": "Karar Destek Sistemleri",
+      "BM474": "ERP Uygulamaları",
+      "BM475": "Kurumsal Java",
+      "BM476": "Açık Kaynak Programlama",
+      "BM477": "Graf Teorisi",
+      "BM478": "Python İle Veri Bilimine Giriş",
+      "BM479": "Kompleks Ağ Analizi",
+      "BM480": "Derin Öğrenme",
+      "BM481": "Sanallaştırma Teknolojileri",
+      "BM482": "Yazılım Gereksinimleri Mühendisliği",
+      "BM483": "Doğal Dil İşlemeye Giriş",
+      "BM485": "Dosya Organizasyonu",
+      "BM486": "Sayısal Sistem Tasarım",
+      "BM487": "Nesnelerin İnterneti",
+      "BM488": "Veri Analizi ve Tahminleme Yöntemleri",
+      "BM489": "Programlanabilir Mantık Denetleyiciler",
+      "BM490": "Bilgi Güvenliği",
+      "BM491": "Sistem Biyolojisi",
+      "BM492": "Tıbbi İstatistik ve Tıp Bilişimine Giriş",
+      "BM493": "Veri İletişimi",
+      "BM494": "Kablosuz Haberleşme",
       "BM495": "İleri Gömülü Sistem Uygulamaları",
-      "BM451": "Yapay Zekaya Giriş",
-      "BM453": "Görüntü İşleme",
-      "BM457": "Veri Madenciliği",
-      "BM459": "Bilgisayar Ağları",
-      "BM463": "Dağıtık Sistemler",
-      "BM465": "Kriptografi ve Ağ Güvenliği",
-      "BM467": "Paralel Hesaplama",
-      "BM473": "Doğal Dil İşlemeye Giriş",
-      "BM475": "Robotik Sistemler",
-      "BM477": "Yazılım Testi ve Kalitesi",
-      "BM479": "Web Tabanlı Sistemler",
-      "BM481": "Mobil Programlama",
-      "BM483": "Derleyici Tasarımı"
+      "BM496": "Bilgi Mühendisliği ve Büyük Veriye Giriş",
+      "BM404": "İşletmede Mesleki Eğitim",
+      "MTH401": "LLM Tabanlı Soru-Cevap Sistemleri"
     };
 
     const normalizeString = (str: string) => {
@@ -379,25 +453,14 @@ export function useTranscript() {
         .replace(/[^A-Z0-9]/g, '');
     };
 
-    let currentSemesterId = 1;
-
     lines.forEach(line => {
-      // 1. Detect semester headers (e.g. 1. Yarıyıl, 1. Sınıf / Güz, 2022-2023 Güz Dönemi vb.)
-      const classMatch = line.match(/(\d+)\s*\.\s*Sınıf\s*(?:\/)?\s*(Güz|Bahar|Guz)/i);
-      if (classMatch) {
-        const classNum = parseInt(classMatch[1], 10);
-        const isBahar = /Bahar/i.test(classMatch[2]);
-        currentSemesterId = (classNum - 1) * 2 + (isBahar ? 2 : 1);
-        return;
-      }
-
-      const semMatch = line.match(/(\d+)\s*\.\s*(?:Yarıyıl|Yariyil|Dönem|Donem|Yy|Y\.Y)/i);
-      if (semMatch) {
-        currentSemesterId = parseInt(semMatch[1], 10);
-        return;
-      }
-
-      // 2. Try parsing the line as a course line
+      // Try parsing the line as a course line. Semester/class headers in the pasted text are
+      // intentionally ignored for placement purposes: elective course pools are shared between
+      // the two semesters of a class year (e.g. the same ~60 department electives can be taken
+      // in either the 7th or 8th semester), so trusting a fragile "N. Yarıyıl" header parse to
+      // pick one over the other only risks misplacing courses. Placement below instead fills
+      // whichever semester of the pair still has an open elective slot, in the order courses
+      // appear in the pasted text.
       const codeMatch = line.match(/\b([A-Z]{2,3})\s*(\d{3})\b/i);
       if (!codeMatch) return;
 
@@ -526,56 +589,70 @@ export function useTranscript() {
         }
       }
 
-      // 4. Handle Elective course replacement or addition
+      // 4. Handle Elective course: update if already present anywhere, otherwise place it
       if (!isCompulsoryMatched) {
-        // Determine year from first digit of the course code number (e.g. US225 -> 2)
-        const numMatch = code.match(/\d/);
-        const codeFirstDigit = numMatch ? parseInt(numMatch[0], 10) : 0;
-        
-        let targetSemesters: number[] = [];
-        if (codeFirstDigit === 1) targetSemesters = [1, 2];
-        else if (codeFirstDigit === 2) targetSemesters = [3, 4];
-        else if (codeFirstDigit === 3) targetSemesters = [5, 6];
-        else if (codeFirstDigit === 4) targetSemesters = [7, 8];
-        
-        // Find the best semester to put this elective in
-        let assignedSemesterId = currentSemesterId;
-        
-        // If currentSemesterId is not within targetSemesters, we fallback to finding the first target semester with an unused placeholder
-        if (!targetSemesters.includes(currentSemesterId)) {
-          let foundSem = false;
-          for (const semId of targetSemesters) {
-            const sem = updatedSemesters.find(s => s.semesterId === semId);
-            if (sem && sem.courses.some(c => c.courseCode.toUpperCase().startsWith("SEC"))) {
-              assignedSemesterId = semId;
-              foundSem = true;
-              break;
-            }
-          }
-          if (!foundSem && targetSemesters.length > 0) {
-            assignedSemesterId = targetSemesters[0];
-          }
+        // The parsed name from the student's own transcript is always the source of truth;
+        // the dictionary is only a fallback for when extraction comes up empty (e.g. the name
+        // got split across lines in a way we couldn't reconstruct).
+        const parsedName = decodeShiftedText(courseName);
+        const cleanName = parsedName && parsedName !== "Seçmeli Ders" ? parsedName : (ELECTIVE_NAMES[code] || "Seçmeli Ders");
+
+        // If this exact elective code was already placed earlier (e.g. the transcript was
+        // pasted twice, or it was matched into a placeholder in a previous import), update it
+        // in place instead of creating a duplicate entry elsewhere.
+        let existingCourse: Course | undefined;
+        for (const sem of updatedSemesters) {
+          existingCourse = sem.courses.find(c => normalizeString(c.courseCode) === codeNorm && !c.courseCode.toUpperCase().startsWith("SEC"));
+          if (existingCourse) break;
         }
 
-        const cleanName = ELECTIVE_NAMES[code] || decodeShiftedText(courseName);
+        if (existingCourse) {
+          existingCourse.grade = finalGrade as LetterGrade;
+          existingCourse.courseName = cleanName;
+          if (credit > 0) existingCourse.credit = credit;
+          if (akts > 0) existingCourse.akts = akts;
+          foundCourses.push({
+            code: existingCourse.courseCode,
+            name: existingCourse.courseName,
+            grade: finalGrade
+          });
+        } else {
+          // Determine the class year from the first digit of the course code number
+          // (e.g. US225 -> 2nd year, BM451 -> 4th year) and fill whichever semester of that
+          // year's pair (Güz/Bahar) still has an open elective placeholder, in text order.
+          const numMatch = code.match(/\d/);
+          const codeFirstDigit = numMatch ? parseInt(numMatch[0], 10) : 0;
 
-        const sem = updatedSemesters.find(s => s.semesterId === assignedSemesterId);
-        if (sem) {
-          const placeholder = sem.courses.find(c => c.courseCode.toUpperCase().startsWith("SEC"));
-          if (placeholder) {
-            placeholder.courseCode = code;
-            placeholder.courseName = cleanName;
-            if (credit > 0) placeholder.credit = credit;
-            if (akts > 0) placeholder.akts = akts;
-            placeholder.grade = finalGrade as LetterGrade;
-            foundCourses.push({
-              code,
-              name: cleanName,
-              grade: finalGrade
-            });
-          } else {
-            // Check if course already added to avoid duplicates
-            if (!sem.courses.some(c => normalizeString(c.courseCode) === codeNorm)) {
+          let targetSemesters: number[] = [];
+          if (codeFirstDigit === 1) targetSemesters = [1, 2];
+          else if (codeFirstDigit === 2) targetSemesters = [3, 4];
+          else if (codeFirstDigit === 3) targetSemesters = [5, 6];
+          else if (codeFirstDigit === 4) targetSemesters = [7, 8];
+          else targetSemesters = updatedSemesters.map(s => s.semesterId);
+
+          let assignedSemesterId: number | undefined = targetSemesters.find(semId => {
+            const sem = updatedSemesters.find(s => s.semesterId === semId);
+            return sem && sem.courses.some(c => c.courseCode.toUpperCase().startsWith("SEC"));
+          });
+          if (assignedSemesterId === undefined) {
+            assignedSemesterId = targetSemesters[0];
+          }
+
+          const sem = updatedSemesters.find(s => s.semesterId === assignedSemesterId);
+          if (sem) {
+            const placeholder = sem.courses.find(c => c.courseCode.toUpperCase().startsWith("SEC"));
+            if (placeholder) {
+              placeholder.courseCode = code;
+              placeholder.courseName = cleanName;
+              if (credit > 0) placeholder.credit = credit;
+              if (akts > 0) placeholder.akts = akts;
+              placeholder.grade = finalGrade as LetterGrade;
+              foundCourses.push({
+                code,
+                name: cleanName,
+                grade: finalGrade
+              });
+            } else {
               sem.courses.push({
                 courseCode: code,
                 courseName: cleanName,

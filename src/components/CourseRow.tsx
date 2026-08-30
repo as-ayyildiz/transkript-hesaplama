@@ -69,140 +69,208 @@ export default function CourseRow({
   const displayCode = isDefaultCode && isEditing && tempCode === course.courseCode ? "" : tempCode;
   const placeholderCode = isDefaultCode ? course.courseCode : "Kod";
 
-  return (
-    <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors duration-150 border-b border-zinc-100 dark:border-zinc-800/60 last:border-0 group">
-      {/* Course Code */}
-      <td className="py-3.5 px-4 font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100 align-middle">
-        {isEditing ? (
-          <input
-            type="text"
-            placeholder={placeholderCode}
-            value={displayCode}
-            onChange={(e) => setTempCode(e.target.value)}
-            className="w-24 px-2 py-1 text-xs font-mono font-semibold rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        ) : (
-          course.courseCode
-        )}
-      </td>
+  const gradeSelectClassName = `text-xs font-semibold px-2 py-1.5 rounded-lg border focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all outline-none bg-white dark:bg-zinc-800 ${
+    course.grade
+      ? ["FF", "FD", "DZ", "YZ"].includes(course.grade)
+        ? "border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400"
+        : ["YT", "AA", "BA", "BB"].includes(course.grade)
+        ? "border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400"
+        : "border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+      : "border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500"
+  }`;
 
-      {/* Course Name */}
-      <td className="py-3.5 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300 align-middle">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+  // Plain render helpers (not components) so JSX identity stays stable across re-renders —
+  // defining these as components instead would remount the <select>/buttons on every keystroke
+  // or grade change, dropping focus and closing the dropdown mid-interaction.
+  const renderGradeSelect = (className: string) => (
+    <select
+      value={course.grade || ""}
+      onChange={(e) => onGradeChange(semesterId, course.courseCode, e.target.value as LetterGrade)}
+      className={`${gradeSelectClassName} ${className}`}
+      aria-label={`${course.courseName} harf notu seçin`}
+    >
+      <option value="">Seçiniz</option>
+      {AVAILABLE_GRADES.map((grade) => (
+        <option key={grade.value} value={grade.value}>
+          {grade.label}
+        </option>
+      ))}
+    </select>
+  );
+
+  const renderEditActions = () => (
+    <>
+      <button
+        onClick={handleSave}
+        className="p-1.5 rounded-md text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 active:scale-90 transition-all cursor-pointer"
+        title="Kaydet"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+      </button>
+      <button
+        onClick={handleCancel}
+        className="p-1.5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-90 transition-all cursor-pointer"
+        title="İptal"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </>
+  );
+
+  const renderViewActions = (hoverReveal: boolean) => (
+    <>
+      {isEditableElective && onCourseDetailsChange && (
+        <button
+          onClick={handleStartEdit}
+          className={`p-1.5 rounded-md text-zinc-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 active:scale-90 transition-all cursor-pointer opacity-100 ${hoverReveal ? 'sm:opacity-0 group-hover:opacity-100' : ''}`}
+          title="Dersi Düzenle"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 17.982a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+          </svg>
+        </button>
+      )}
+      {course.isCustom && onDelete && (
+        <button
+          onClick={() => onDelete(semesterId, course.courseCode)}
+          className={`p-1.5 rounded-md text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-90 transition-all cursor-pointer opacity-100 ${hoverReveal ? 'sm:opacity-0 group-hover:opacity-100' : ''}`}
+          title="Dersi Sil"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+          </svg>
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile card layout (< md) */}
+      <tr className="md:hidden border-b border-zinc-100 dark:border-zinc-800/60 last:border-0 group">
+        <td colSpan={7} className="block p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    placeholder={placeholderCode}
+                    value={displayCode}
+                    onChange={(e) => setTempCode(e.target.value)}
+                    className="w-24 px-2 py-1 text-xs font-mono font-semibold rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                ) : (
+                  <span className="font-mono text-sm font-bold text-zinc-900 dark:text-zinc-100">{course.courseCode}</span>
+                )}
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${getBadgeColor(course.type)}`}>
+                  {course.type}
+                </span>
+                {course.isCustom && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
+                    Kişisel
+                  </span>
+                )}
+              </div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  placeholder={placeholderText}
+                  value={displayValue}
+                  onChange={(e) => setTempName(e.target.value)}
+                  className="mt-1.5 w-full px-2 py-1 text-xs font-semibold rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              ) : (
+                <p className="mt-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{course.courseName}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              {isEditing ? renderEditActions() : renderViewActions(false)}
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+              <span>Kredi <strong className="text-zinc-800 dark:text-zinc-200">{course.credit}</strong></span>
+              <span>AKTS <strong className="text-zinc-800 dark:text-zinc-200">{course.akts}</strong></span>
+            </div>
+            {renderGradeSelect("flex-shrink-0 w-32")}
+          </div>
+        </td>
+      </tr>
+
+      {/* Desktop table row (md+) */}
+      <tr className="hidden md:table-row hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors duration-150 border-b border-zinc-100 dark:border-zinc-800/60 last:border-0 group">
+        {/* Course Code */}
+        <td className="py-3.5 px-4 font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100 align-middle">
           {isEditing ? (
             <input
               type="text"
-              placeholder={placeholderText}
-              value={displayValue}
-              onChange={(e) => setTempName(e.target.value)}
-              className="w-full max-w-xs sm:max-w-md px-2 py-1 text-xs font-semibold rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              placeholder={placeholderCode}
+              value={displayCode}
+              onChange={(e) => setTempCode(e.target.value)}
+              className="w-24 px-2 py-1 text-xs font-mono font-semibold rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           ) : (
-            <span>{course.courseName}</span>
+            course.courseCode
           )}
-          {course.isCustom && (
-            <span className="inline-flex self-start sm:self-auto items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
-              Kişisel
-            </span>
-          )}
-        </div>
-      </td>
+        </td>
 
-      {/* Course Type Badge */}
-      <td className="py-3.5 px-4 text-center align-middle whitespace-nowrap">
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getBadgeColor(course.type)}`}>
-          {course.type}
-        </span>
-      </td>
+        {/* Course Name */}
+        <td className="py-3.5 px-4 text-sm font-medium text-zinc-700 dark:text-zinc-300 align-middle">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {isEditing ? (
+              <input
+                type="text"
+                placeholder={placeholderText}
+                value={displayValue}
+                onChange={(e) => setTempName(e.target.value)}
+                className="w-full max-w-xs sm:max-w-md px-2 py-1 text-xs font-semibold rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            ) : (
+              <span>{course.courseName}</span>
+            )}
+            {course.isCustom && (
+              <span className="inline-flex self-start sm:self-auto items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
+                Kişisel
+              </span>
+            )}
+          </div>
+        </td>
 
-      {/* Credits */}
-      <td className="py-3.5 px-4 text-center text-sm font-semibold text-zinc-900 dark:text-zinc-100 align-middle">
-        {course.credit}
-      </td>
+        {/* Course Type Badge */}
+        <td className="py-3.5 px-4 text-center align-middle whitespace-nowrap">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getBadgeColor(course.type)}`}>
+            {course.type}
+          </span>
+        </td>
 
-      {/* AKTS */}
-      <td className="py-3.5 px-4 text-center text-sm font-semibold text-zinc-900 dark:text-zinc-100 align-middle">
-        {course.akts}
-      </td>
+        {/* Credits */}
+        <td className="py-3.5 px-4 text-center text-sm font-semibold text-zinc-900 dark:text-zinc-100 align-middle">
+          {course.credit}
+        </td>
 
-      {/* Letter Grade Dropdown */}
-      <td className="py-3.5 px-4 align-middle">
-        <select
-          value={course.grade || ""}
-          onChange={(e) => onGradeChange(semesterId, course.courseCode, e.target.value as LetterGrade)}
-          className={`w-full text-xs font-semibold px-2 py-1.5 rounded-lg border focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all outline-none bg-white dark:bg-zinc-800 ${
-            course.grade
-              ? ["FF", "FD", "DZ", "YZ"].includes(course.grade)
-                ? "border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400"
-                : ["YT", "AA", "BA", "BB"].includes(course.grade)
-                ? "border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400"
-                : "border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
-              : "border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500"
-          }`}
-          aria-label={`${course.courseName} harf notu seçin`}
-        >
-          <option value="">Seçiniz</option>
-          {AVAILABLE_GRADES.map((grade) => (
-            <option key={grade.value} value={grade.value}>
-              {grade.label}
-            </option>
-          ))}
-        </select>
-      </td>
+        {/* AKTS */}
+        <td className="py-3.5 px-4 text-center text-sm font-semibold text-zinc-900 dark:text-zinc-100 align-middle">
+          {course.akts}
+        </td>
 
-      {/* Actions (Edit/Delete) */}
-      <td className="py-3.5 px-4 text-center align-middle whitespace-nowrap">
-        <div className="flex items-center justify-center gap-1.5">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleSave}
-                className="p-1 rounded-md text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 active:scale-90 transition-all cursor-pointer"
-                title="Kaydet"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              </button>
-              <button
-                onClick={handleCancel}
-                className="p-1 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-90 transition-all cursor-pointer"
-                title="İptal"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </>
-          ) : (
-            <>
-              {isEditableElective && onCourseDetailsChange && (
-                <button
-                  onClick={handleStartEdit}
-                  className="p-1 rounded-md text-zinc-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 active:scale-90 transition-all cursor-pointer opacity-100 sm:opacity-0 group-hover:opacity-100"
-                  title="Dersi Düzenle"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 17.982a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
-                </button>
-              )}
-              {course.isCustom && onDelete && (
-                <button
-                  onClick={() => onDelete(semesterId, course.courseCode)}
-                  className="p-1 rounded-md text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-90 transition-all cursor-pointer opacity-100 sm:opacity-0 group-hover:opacity-100"
-                  title="Dersi Sil"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                  </svg>
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      </td>
-    </tr>
+        {/* Letter Grade Dropdown */}
+        <td className="py-3.5 px-4 align-middle">
+          {renderGradeSelect("w-full")}
+        </td>
+
+        {/* Actions (Edit/Delete) */}
+        <td className="py-3.5 px-4 text-center align-middle whitespace-nowrap">
+          <div className="flex items-center justify-center gap-1.5">
+            {isEditing ? renderEditActions() : renderViewActions(true)}
+          </div>
+        </td>
+      </tr>
+    </>
   );
 }
-

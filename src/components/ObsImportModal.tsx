@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ObsImportModalProps {
   isOpen: boolean;
@@ -16,6 +16,16 @@ export default function ObsImportModal({
   const [text, setText] = useState('');
   const [step, setStep] = useState<'input' | 'result'>('input');
   const [results, setResults] = useState<{ code: string; name: string; grade: string }[]>([]);
+
+  // Always start from a clean input screen whenever the modal is (re)opened, so a leftover
+  // result from a previous import isn't shown if the user re-triggers it without closing first.
+  useEffect(() => {
+    if (isOpen) {
+      setText('');
+      setStep('input');
+      setResults([]);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -49,7 +59,7 @@ export default function ObsImportModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/30">
           <div>
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-lg">OBS'den Otomatik Not Aktar</h3>
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-lg">OBS&apos;den Otomatik Not Aktar</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               Transkriptinizi kopyalayıp yapıştırarak notlarınızı saniyeler içinde aktarın.
             </p>
@@ -71,7 +81,7 @@ export default function ObsImportModal({
             <form onSubmit={handleParse} className="space-y-4">
               {/* Instructions */}
               <div className="bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 rounded-2xl p-4 text-sm text-indigo-800 dark:text-indigo-300 text-center font-medium">
-                OBS'den transkript sayfanızı Ctrl+A ile seçip kopyaladıktan sonra buraya yapıştırın.
+                OBS&apos;den transkript sayfanızı Ctrl+A ile seçip kopyaladıktan sonra buraya yapıştırın.
               </div>
 
               <div>

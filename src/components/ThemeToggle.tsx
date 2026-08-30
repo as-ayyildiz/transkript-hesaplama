@@ -7,19 +7,9 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
-    // Check local storage or prefers-color-scheme
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-    setTheme(initialTheme);
-    
-    if (initialTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // The blocking script in layout.tsx already applied the right class before paint;
+    // just mirror it into state so the toggle icon matches.
+    setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   }, []);
 
   const toggleTheme = () => {

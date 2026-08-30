@@ -5,6 +5,7 @@ import StatsDashboard from '../components/StatsDashboard';
 import SemesterCard from '../components/SemesterCard';
 import { useRef, useState } from 'react';
 import ObsImportModal from '../components/ObsImportModal';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Home() {
   const {
@@ -125,6 +126,7 @@ export default function Home() {
               ))}
             </select>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -147,9 +149,9 @@ export default function Home() {
 
         {/* Semesters list */}
         <section aria-label="Dönemler ve Dersler" className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Dönem Dersleri</h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Backup actions */}
               <input
                 type="file"
@@ -160,28 +162,29 @@ export default function Home() {
               />
               <button
                 onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 py-1.5 px-4 rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/10 active:scale-95"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 py-2 px-4 rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/10 active:scale-95"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4.5 h-4.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                OBS'den Otomatik Aktar
+                OBS&apos;den Aktar
               </button>
               {hasObsImport && (
                 <button
                   onClick={revertToObsImport}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100/50 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-800/60 py-1.5 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 animate-in fade-in duration-200"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100/50 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-800/60 py-2 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95 animate-in fade-in duration-200"
                   title="OBS'den en son aktarılan notlara geri dön"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
                   </svg>
-                  OBS Notlarına Geri Dön
+                  <span className="hidden sm:inline">OBS Notlarına Geri Dön</span>
+                  <span className="sm:hidden">Geri Dön</span>
                 </button>
               )}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 bg-white/80 dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 py-1.5 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 bg-white/80 dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 py-2 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
@@ -190,12 +193,13 @@ export default function Home() {
               </button>
               <button
                 onClick={handleExport}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 bg-white/80 dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 py-1.5 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 bg-white/80 dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 py-2 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-95"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
-                Yedekle (Dışa Aktar)
+                <span className="hidden sm:inline">Yedekle (Dışa Aktar)</span>
+                <span className="sm:hidden">Yedekle</span>
               </button>
             </div>
           </div>

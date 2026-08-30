@@ -114,7 +114,7 @@ export default function SemesterCard({
       <div className={`transition-all duration-300 ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
+            <thead className="hidden md:table-header-group">
               <tr className="bg-zinc-50/30 dark:bg-zinc-950/20 text-zinc-400 dark:text-zinc-500 text-[10px] uppercase font-bold tracking-wider border-b border-zinc-100 dark:border-zinc-800/60">
                 <th className="py-2.5 px-4 w-24">Kod</th>
                 <th className="py-2.5 px-4">Ders Adı</th>
