@@ -45,7 +45,7 @@ const migrateSemesters = (parsed: Semester[], defaultValue: Semester[]) => {
 
 const decodeShiftedText = (text: string): string => {
   // Typical shifted indicators (e.g. backslashes, percent signs, pluses, non-injective character mappings)
-  const isShifted = /[\\]|[%]|[*]|[+]|[&]|[÷]|[ú]|[Õ]|[⊗]/.test(text) || text.includes("LVWHP") || text.includes("LUL");
+  const isShifted = /[\\]|[%]|[*]|[+]|[&]|[÷]|[ú]|[Õ]|[⊗]|[ø]/.test(text) || text.includes("LVWHP") || text.includes("LUL");
   if (!isShifted) return text;
 
   let decoded = "";
@@ -325,7 +325,79 @@ export function useTranscript() {
 
     const normalizedText = sanitizedText.trim();
     const lines = normalizedText.split(/\r?\n/).map(l => l.trim());
-    const updatedSemesters = JSON.parse(JSON.stringify(semesters)) as Semester[];
+
+    const normalizeString = (str: string) => {
+      return str
+        .toUpperCase()
+        .replace(/İ/g, 'I')
+        .replace(/ı/g, 'I')
+        .replace(/Ğ/g, 'G')
+        .replace(/ğ/g, 'G')
+        .replace(/Ü/g, 'U')
+        .replace(/ü/g, 'U')
+        .replace(/Ş/g, 'S')
+        .replace(/ş/g, 'S')
+        .replace(/Ö/g, 'O')
+        .replace(/ö/g, 'O')
+        .replace(/[^A-Z0-9]/g, '');
+    };
+
+    // Detect which Bologna Yılı curriculum the pasted course codes actually belong to. Course
+    // codes changed between eras (e.g. BM101 -> BM111 after 2024), so importing against the
+    // wrong currently-selected year means none of the student's real courses match any
+    // compulsory course — every one of them then gets misread as an unrecognized elective and
+    // added as a duplicate "Kişisel" entry alongside the (empty) real compulsory course. Instead,
+    // score every curriculum year by how many pasted codes are compulsory courses there, and
+    // import against whichever year actually matches.
+    const codesInText = new Set<string>();
+    lines.forEach(line => {
+      const re = /\b([A-Z]{2,3})\s*(\d{3})\b/gi;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(line)) !== null) {
+        codesInText.add(normalizeString(m[1] + m[2]));
+      }
+    });
+
+    let bestYear = bolognaYear;
+    let bestScore = -1;
+    const scoreByYear: Record<string, number> = {};
+    Object.keys(CURRICULA).forEach(year => {
+      const compulsoryCodes = new Set<string>();
+      CURRICULA[year].curriculum.forEach(sem => sem.courses.forEach(c => {
+        if (!c.courseCode.toUpperCase().startsWith("SEC")) {
+          compulsoryCodes.add(normalizeString(c.courseCode));
+        }
+      }));
+      let score = 0;
+      codesInText.forEach(code => { if (compulsoryCodes.has(code)) score++; });
+      scoreByYear[year] = score;
+      if (score > bestScore) {
+        bestScore = score;
+        bestYear = year;
+      }
+    });
+
+    // Only switch away from the currently selected year if another year clearly matches
+    // better — avoids flip-flopping over the handful of codes shared by every era
+    // (AIB101, ING101, TDB121, etc).
+    const currentYearScore = scoreByYear[bolognaYear] ?? 0;
+    const yearSwitched = bestScore >= 3 && bestScore > currentYearScore && bestYear !== bolognaYear;
+    const effectiveYear = yearSwitched ? bestYear : bolognaYear;
+
+    let updatedSemesters: Semester[];
+    if (yearSwitched) {
+      const savedForYear = localStorage.getItem(`${STORAGE_PREFIX}semesters_${effectiveYear}`);
+      try {
+        updatedSemesters = savedForYear
+          ? (JSON.parse(savedForYear) as Semester[])
+          : (JSON.parse(JSON.stringify(CURRICULA[effectiveYear].curriculum)) as Semester[]);
+      } catch {
+        updatedSemesters = JSON.parse(JSON.stringify(CURRICULA[effectiveYear].curriculum));
+      }
+    } else {
+      updatedSemesters = JSON.parse(JSON.stringify(semesters)) as Semester[];
+    }
+
     const foundCourses: { code: string; name: string; grade: string }[] = [];
 
     const gradeList = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "DZ", "GR", "YT", "YZ"];
@@ -435,22 +507,6 @@ export function useTranscript() {
       "BM496": "Bilgi Mühendisliği ve Büyük Veriye Giriş",
       "BM404": "İşletmede Mesleki Eğitim",
       "MTH401": "LLM Tabanlı Soru-Cevap Sistemleri"
-    };
-
-    const normalizeString = (str: string) => {
-      return str
-        .toUpperCase()
-        .replace(/İ/g, 'I')
-        .replace(/ı/g, 'I')
-        .replace(/Ğ/g, 'G')
-        .replace(/ğ/g, 'G')
-        .replace(/Ü/g, 'U')
-        .replace(/ü/g, 'U')
-        .replace(/Ş/g, 'S')
-        .replace(/ş/g, 'S')
-        .replace(/Ö/g, 'O')
-        .replace(/ö/g, 'O')
-        .replace(/[^A-Z0-9]/g, '');
     };
 
     lines.forEach(line => {
@@ -591,11 +647,13 @@ export function useTranscript() {
 
       // 4. Handle Elective course: update if already present anywhere, otherwise place it
       if (!isCompulsoryMatched) {
-        // The parsed name from the student's own transcript is always the source of truth;
-        // the dictionary is only a fallback for when extraction comes up empty (e.g. the name
-        // got split across lines in a way we couldn't reconstruct).
+        // Prefer the verified EBS name whenever the code is a known elective: real OBS/PDF
+        // exports are frequently copied with a broken font encoding (missing spaces, dropped
+        // Turkish letters) that no amount of decoding fully recovers. Only fall back to the
+        // parsed name for codes we don't have on file (e.g. a cross-listed course from another
+        // department), where it's the only information available.
         const parsedName = decodeShiftedText(courseName);
-        const cleanName = parsedName && parsedName !== "Seçmeli Ders" ? parsedName : (ELECTIVE_NAMES[code] || "Seçmeli Ders");
+        const cleanName = ELECTIVE_NAMES[code] || (parsedName && parsedName !== "Seçmeli Ders" ? parsedName : "Seçmeli Ders");
 
         // If this exact elective code was already placed earlier (e.g. the transcript was
         // pasted twice, or it was matched into a placeholder in a previous import), update it
@@ -675,11 +733,16 @@ export function useTranscript() {
     });
 
     if (foundCourses.length > 0) {
+      if (yearSwitched) {
+        setBolognaYear(effectiveYear);
+        localStorage.setItem(`${STORAGE_PREFIX}bolognaYear`, effectiveYear);
+      }
       setSemesters(updatedSemesters);
       setLastObsImport(updatedSemesters);
-      localStorage.setItem(`${STORAGE_PREFIX}lastObsImport_${bolognaYear}`, JSON.stringify(updatedSemesters));
+      localStorage.setItem(`${STORAGE_PREFIX}semesters_${effectiveYear}`, JSON.stringify(updatedSemesters));
+      localStorage.setItem(`${STORAGE_PREFIX}lastObsImport_${effectiveYear}`, JSON.stringify(updatedSemesters));
     }
-    return foundCourses;
+    return { matched: foundCourses, detectedYear: yearSwitched ? effectiveYear : undefined };
   }, [semesters, bolognaYear]);
 
   // Calculations

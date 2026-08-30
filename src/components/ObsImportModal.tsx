@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 interface ObsImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onParse: (text: string) => { code: string; name: string; grade: string }[];
+  onParse: (text: string) => { matched: { code: string; name: string; grade: string }[]; detectedYear?: string };
 }
 
 export default function ObsImportModal({
@@ -16,6 +16,7 @@ export default function ObsImportModal({
   const [text, setText] = useState('');
   const [step, setStep] = useState<'input' | 'result'>('input');
   const [results, setResults] = useState<{ code: string; name: string; grade: string }[]>([]);
+  const [detectedYear, setDetectedYear] = useState<string | undefined>(undefined);
 
   // Always start from a clean input screen whenever the modal is (re)opened, so a leftover
   // result from a previous import isn't shown if the user re-triggers it without closing first.
@@ -24,6 +25,7 @@ export default function ObsImportModal({
       setText('');
       setStep('input');
       setResults([]);
+      setDetectedYear(undefined);
     }
   }, [isOpen]);
 
@@ -33,8 +35,9 @@ export default function ObsImportModal({
     e.preventDefault();
     if (!text.trim()) return;
 
-    const matched = onParse(text);
+    const { matched, detectedYear } = onParse(text);
     setResults(matched);
+    setDetectedYear(detectedYear);
     setStep('result');
   };
 
@@ -42,6 +45,7 @@ export default function ObsImportModal({
     setText('');
     setStep('input');
     setResults([]);
+    setDetectedYear(undefined);
     onClose();
   };
 
@@ -143,6 +147,17 @@ export default function ObsImportModal({
                       </p>
                     </div>
                   </div>
+
+                  {detectedYear && (
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 rounded-2xl p-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 flex-shrink-0">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                      </svg>
+                      <p className="text-xs font-semibold">
+                        Ders kodlarınız <strong>{detectedYear}</strong> müfredatına ait — Bologna Yılınız otomatik olarak buna göre güncellendi.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Results List */}
                   <div>
