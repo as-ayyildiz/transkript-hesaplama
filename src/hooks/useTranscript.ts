@@ -2,24 +2,40 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Course, Semester, Curriculum, LetterGrade, GRADE_MULTIPLIERS } from '../types/transcript';
-import curriculum2022 from '../data/bilgisayar-muhendisligi-2022-2023.json';
-import curriculum2023 from '../data/bilgisayar-muhendisligi-2023-2024.json';
-import curriculum2024 from '../data/bilgisayar-muhendisligi-2024-2025.json';
-import curriculum2025 from '../data/bilgisayar-muhendisligi-2025-2026.json';
+import curriculumPre2024 from '../data/bilgisayar-muhendisligi-2023-oncesi.json';
+import curriculumPost2024 from '../data/bilgisayar-muhendisligi-2024-sonrasi.json';
+
+// Düzce Üniversitesi Bilgisayar Mühendisliği only actually changed its curriculum once in this
+// window: course codes/credits/AKTS shifted starting the 2024-2025 intake. 2022-2023 and
+// 2023-2024 share one identical curriculum, and 2024-2025 / 2025-2026 share the other (verified
+// against ebs.duzce.edu.tr) — so there are only two real curricula, not four.
+const PRE_2024_YEAR = "2023 ve Öncesi";
+const POST_2024_YEAR = "2024 ve Sonrası";
 
 const CURRICULA: Record<string, Curriculum> = {
-  "2022-2023": curriculum2022 as Curriculum,
-  "2023-2024": curriculum2023 as Curriculum,
-  "2024-2025": curriculum2024 as Curriculum,
-  "2025-2026": curriculum2025 as Curriculum,
+  [PRE_2024_YEAR]: curriculumPre2024 as Curriculum,
+  [POST_2024_YEAR]: curriculumPost2024 as Curriculum,
 };
 
-const DEFAULT_YEAR = "2025-2026";
+const DEFAULT_YEAR = POST_2024_YEAR;
 const STORAGE_PREFIX = 'transkript_hesaplama_';
+
+// Per-year storage keys used before the app collapsed to just two curricula, kept here purely
+// so anyone with existing saved progress under an old key doesn't lose it.
+const LEGACY_YEAR_KEYS: Record<string, string[]> = {
+  [PRE_2024_YEAR]: ["2022-2023", "2023-2024"],
+  [POST_2024_YEAR]: ["2024-2025", "2025-2026"],
+};
 
 // Guards against a stale/corrupted bolognaYear in localStorage (e.g. left over from a version
 // of the app that supported a curriculum year no longer offered) crashing the whole app on load.
-const resolveYear = (year: string | null): string => (year && CURRICULA[year]) ? year : DEFAULT_YEAR;
+const resolveYear = (year: string | null): string => {
+  if (year && CURRICULA[year]) return year;
+  for (const bucket of Object.keys(LEGACY_YEAR_KEYS)) {
+    if (year && LEGACY_YEAR_KEYS[bucket].includes(year)) return bucket;
+  }
+  return DEFAULT_YEAR;
+};
 
 const migrateSemesters = (parsed: Semester[], defaultValue: Semester[]) => {
   return parsed.map(sem => {
@@ -42,6 +58,49 @@ const migrateSemesters = (parsed: Semester[], defaultValue: Semester[]) => {
     return sem;
   });
 };
+
+// Loads the working semesters for a curriculum year: the year's own saved progress if present,
+// falling back to progress saved under its pre-consolidation legacy keys, falling back to a
+// fresh copy of the curriculum. Also carries forward the old SECMES7YY/8YY placeholder migration.
+const loadSemestersForYear = (year: string): Semester[] => {
+  const freshCopy = () => JSON.parse(JSON.stringify(CURRICULA[year].curriculum)) as Semester[];
+
+  let raw = localStorage.getItem(`${STORAGE_PREFIX}semesters_${year}`);
+  if (!raw) {
+    for (const legacyKey of LEGACY_YEAR_KEYS[year] || []) {
+      raw = localStorage.getItem(`${STORAGE_PREFIX}semesters_${legacyKey}`);
+      if (raw) break;
+    }
+  }
+  if (!raw) return freshCopy();
+
+  try {
+    let parsed = JSON.parse(raw) as Semester[];
+    const needsMigration = parsed.some(sem => sem.courses.some(c => c.courseCode === "SECMES7YY" || c.courseCode === "SECMES8YY"));
+    if (needsMigration) {
+      parsed = migrateSemesters(parsed, freshCopy());
+    }
+    return parsed;
+  } catch {
+    return freshCopy();
+  }
+};
+
+// Course codes renamed (not just re-valued) when the curriculum changed in 2024-2025, sourced
+// from a direct diff against ebs.duzce.edu.tr. A student who took one of these before 2024 keeps
+// the old code on their transcript forever, even if they're now viewed under the newer
+// curriculum (or vice versa) — so OBS import must treat each pair as the same course.
+const RENAMED_COURSE_PAIRS: [string, string][] = [
+  ["BM101", "BM111"], ["BM105", "BM115"], ["FIZ101", "FIZ111"], ["MAT101", "MAT111"],
+  ["BM102", "BM112"], ["BM104", "BM114"], ["FIZ102", "FIZ112"], ["MAT102", "MAT112"],
+  ["BM205", "BM225"], ["BM209", "BM229"], ["BM211", "BM221"], ["BM215", "BM217"],
+  ["BM399", "BM397"], ["BM499", "BM497"],
+];
+const RENAMED_COURSE_EQUIVALENT: Record<string, string> = {};
+RENAMED_COURSE_PAIRS.forEach(([oldCode, newCode]) => {
+  RENAMED_COURSE_EQUIVALENT[oldCode] = newCode;
+  RENAMED_COURSE_EQUIVALENT[newCode] = oldCode;
+});
 
 const decodeShiftedText = (text: string): string => {
   // Typical shifted indicators (e.g. backslashes, percent signs, pluses, non-injective character mappings)
@@ -107,30 +166,9 @@ export function useTranscript() {
 
     const savedYear = resolveYear(localStorage.getItem(`${STORAGE_PREFIX}bolognaYear`));
     setBolognaYear(savedYear);
+    setSemesters(loadSemestersForYear(savedYear));
 
-    const savedSemesters = localStorage.getItem(`${STORAGE_PREFIX}semesters_${savedYear}`);
     const savedLastObs = localStorage.getItem(`${STORAGE_PREFIX}lastObsImport_${savedYear}`);
-
-    if (savedSemesters) {
-      try {
-        let parsed = JSON.parse(savedSemesters) as Semester[];
-        const needsMigration = parsed.some(sem => sem.courses.some(c => c.courseCode === "SECMES7YY" || c.courseCode === "SECMES8YY"));
-        if (needsMigration) {
-          const defaultValue = JSON.parse(JSON.stringify(CURRICULA[savedYear].curriculum)) as Semester[];
-          parsed = migrateSemesters(parsed, defaultValue);
-          localStorage.setItem(`${STORAGE_PREFIX}semesters_${savedYear}`, JSON.stringify(parsed));
-          localStorage.removeItem(`${STORAGE_PREFIX}lastObsImport_${savedYear}`);
-        }
-        setSemesters(parsed);
-      } catch (e) {
-        console.error("Error parsing saved semesters", e);
-        setSemesters(JSON.parse(JSON.stringify(CURRICULA[savedYear].curriculum)));
-      }
-    } else {
-      // Deep copy to prevent mutating static JSON reference
-      setSemesters(JSON.parse(JSON.stringify(CURRICULA[savedYear].curriculum)));
-    }
-
     if (savedLastObs) {
       try {
         setLastObsImport(JSON.parse(savedLastObs));
@@ -151,26 +189,9 @@ export function useTranscript() {
   // Change Bologna Year and load/initialize data
   const changeBolognaYear = useCallback((newYear: string) => {
     if (!CURRICULA[newYear]) return;
-    
+
     setBolognaYear(newYear);
-    const savedSemesters = localStorage.getItem(`${STORAGE_PREFIX}semesters_${newYear}`);
-    if (savedSemesters) {
-      try {
-        let parsed = JSON.parse(savedSemesters) as Semester[];
-        const needsMigration = parsed.some(sem => sem.courses.some(c => c.courseCode === "SECMES7YY" || c.courseCode === "SECMES8YY"));
-        if (needsMigration) {
-          const defaultValue = JSON.parse(JSON.stringify(CURRICULA[newYear].curriculum)) as Semester[];
-          parsed = migrateSemesters(parsed, defaultValue);
-          localStorage.setItem(`${STORAGE_PREFIX}semesters_${newYear}`, JSON.stringify(parsed));
-          localStorage.removeItem(`${STORAGE_PREFIX}lastObsImport_${newYear}`);
-        }
-        setSemesters(parsed);
-      } catch (e) {
-        setSemesters(JSON.parse(JSON.stringify(CURRICULA[newYear].curriculum)));
-      }
-    } else {
-      setSemesters(JSON.parse(JSON.stringify(CURRICULA[newYear].curriculum)));
-    }
+    setSemesters(loadSemestersForYear(newYear));
 
     const savedLastObs = localStorage.getItem(`${STORAGE_PREFIX}lastObsImport_${newYear}`);
     if (savedLastObs) {
@@ -384,19 +405,9 @@ export function useTranscript() {
     const yearSwitched = bestScore >= 3 && bestScore > currentYearScore && bestYear !== bolognaYear;
     const effectiveYear = yearSwitched ? bestYear : bolognaYear;
 
-    let updatedSemesters: Semester[];
-    if (yearSwitched) {
-      const savedForYear = localStorage.getItem(`${STORAGE_PREFIX}semesters_${effectiveYear}`);
-      try {
-        updatedSemesters = savedForYear
-          ? (JSON.parse(savedForYear) as Semester[])
-          : (JSON.parse(JSON.stringify(CURRICULA[effectiveYear].curriculum)) as Semester[]);
-      } catch {
-        updatedSemesters = JSON.parse(JSON.stringify(CURRICULA[effectiveYear].curriculum));
-      }
-    } else {
-      updatedSemesters = JSON.parse(JSON.stringify(semesters)) as Semester[];
-    }
+    const updatedSemesters: Semester[] = yearSwitched
+      ? loadSemestersForYear(effectiveYear)
+      : (JSON.parse(JSON.stringify(semesters)) as Semester[]);
 
     const foundCourses: { code: string; name: string; grade: string }[] = [];
 
@@ -625,13 +636,9 @@ export function useTranscript() {
         const sem = updatedSemesters[sIndex];
         const compCourse = sem.courses.find(c => {
           const cCode = normalizeString(c.courseCode);
-          if ((cCode === "BM497" || cCode === "BM499") && (codeNorm === "BM497" || codeNorm === "BM499")) {
-            return true;
-          }
-          if ((cCode === "BM397" || cCode === "BM399") && (codeNorm === "BM397" || codeNorm === "BM399")) {
-            return true;
-          }
-          return cCode === codeNorm;
+          // A course renamed across the 2024 curriculum change (e.g. BM101/BM111) is the same
+          // course regardless of which code variant the student's transcript happens to use.
+          return cCode === codeNorm || RENAMED_COURSE_EQUIVALENT[cCode] === codeNorm;
         });
         if (compCourse) {
           compCourse.grade = finalGrade as LetterGrade;
