@@ -102,6 +102,14 @@ RENAMED_COURSE_PAIRS.forEach(([oldCode, newCode]) => {
   RENAMED_COURSE_EQUIVALENT[newCode] = oldCode;
 });
 
+// OBS import guesses which pair of semesters an elective belongs to from the first digit of its
+// own code (US2xx -> 3./4. yarıyıl, MS3xx -> 5./6., BM4xx -> 7./8.) — true for every real
+// elective except UNI101, a generic "herhangi bir üniversite seçmelisi" code that belongs to the
+// 3./4. yarıyıl pool despite starting with "1".
+const ELECTIVE_POOL_OVERRIDES: Record<string, number[]> = {
+  "UNI101": [3, 4],
+};
+
 const decodeShiftedText = (text: string): string => {
   // Typical shifted indicators (e.g. backslashes, percent signs, pluses, non-injective character mappings)
   const isShifted = /[\\]|[%]|[*]|[+]|[&]|[÷]|[ú]|[Õ]|[⊗]|[ø]/.test(text) || text.includes("LVWHP") || text.includes("LUL");
@@ -684,16 +692,23 @@ export function useTranscript() {
         } else {
           // Determine the class year from the first digit of the course code number
           // (e.g. US225 -> 2nd year, BM451 -> 4th year) and fill whichever semester of that
-          // year's pair (Güz/Bahar) still has an open elective placeholder, in text order.
+          // year's pair (Güz/Bahar) still has an open elective placeholder, in text order. This
+          // placement never looks at which semester the pasted text says the course was taken
+          // in, so it's unaffected by üstten/alttan ders alma (a course taken out of its normal
+          // semester) — it always lands in the semester the curriculum actually assigns it to.
+          // A couple of real codes (UNI101) don't follow their pool's own digit pattern, so
+          // known exceptions are corrected before falling back to the digit guess.
           const numMatch = code.match(/\d/);
           const codeFirstDigit = numMatch ? parseInt(numMatch[0], 10) : 0;
 
-          let targetSemesters: number[] = [];
-          if (codeFirstDigit === 1) targetSemesters = [1, 2];
-          else if (codeFirstDigit === 2) targetSemesters = [3, 4];
-          else if (codeFirstDigit === 3) targetSemesters = [5, 6];
-          else if (codeFirstDigit === 4) targetSemesters = [7, 8];
-          else targetSemesters = updatedSemesters.map(s => s.semesterId);
+          let targetSemesters: number[] = ELECTIVE_POOL_OVERRIDES[code] || [];
+          if (targetSemesters.length === 0) {
+            if (codeFirstDigit === 1) targetSemesters = [1, 2];
+            else if (codeFirstDigit === 2) targetSemesters = [3, 4];
+            else if (codeFirstDigit === 3) targetSemesters = [5, 6];
+            else if (codeFirstDigit === 4) targetSemesters = [7, 8];
+            else targetSemesters = updatedSemesters.map(s => s.semesterId);
+          }
 
           let assignedSemesterId: number | undefined = targetSemesters.find(semId => {
             const sem = updatedSemesters.find(s => s.semesterId === semId);

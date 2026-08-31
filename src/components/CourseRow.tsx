@@ -170,11 +170,6 @@ export default function CourseRow({
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${getBadgeColor(course.type)}`}>
                   {course.type}
                 </span>
-                {course.isCustom && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
-                    Kişisel
-                  </span>
-                )}
               </div>
               {isEditing ? (
                 <input
@@ -233,11 +228,6 @@ export default function CourseRow({
               />
             ) : (
               <span>{course.courseName}</span>
-            )}
-            {course.isCustom && (
-              <span className="inline-flex self-start sm:self-auto items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/20">
-                Kişisel
-              </span>
             )}
           </div>
         </td>
